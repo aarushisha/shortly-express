@@ -5,6 +5,7 @@ const partials = require('express-partials');
 const bodyParser = require('body-parser');
 const Auth = require('./middleware/auth');
 const models = require('./models');
+const Users = require('./models/user');
 
 const app = express();
 
@@ -15,7 +16,33 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 
+// Default if the user is logged in.
+// If the user is already logged in, just rendre their homepage.
+app.get('/signup', (req, res) => {
+  // Render the signup page.
+  res.render('signup');
+});
 
+app.get('/login', (req, res) => {
+  // Render the signup page.
+  res.render('login');
+});
+
+app.post('/signup', (req, res) => {
+  // Check req.body.username is already in users table as username
+  //if not...
+  //sql already has error for duplicate so if it is the same username, refresh page? (ER_DUP_ENTRY)
+  console.log(req.body);
+  Users.create(req.body).then(function(results) {
+    res.redirect('/');
+  }).catch(function(err) {
+    console.log(err);
+    if (err.code = 'ER_DUP_ENTRY') {
+      res.redirect('/signup');
+    }
+  });
+  //else you redirect to /signup (res.redirect('/signup'))
+});
 
 app.get('/', 
 (req, res) => {

@@ -135,13 +135,14 @@ describe('', function() {
         }
       };
 
-      request(options, function(error, res, body) {
+      request(options, function(error, res, body) {     
         var queryString = 'SELECT * FROM users where username = "Samantha"';
         db.query(queryString, function(err, rows) {
           if (err) { done(err); }
           var user = rows[0];
           expect(user).to.exist;
           expect(user.username).to.equal('Samantha');
+          console.log('We\'re here!!!!!!!');
           done();
         });
       });
@@ -208,7 +209,7 @@ describe('', function() {
     });
   });
 
-  xdescribe('Account Login:', function() {
+  describe('Account Login:', function() {
 
     beforeEach(function(done) {
       var options = {
