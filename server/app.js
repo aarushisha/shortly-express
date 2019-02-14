@@ -6,7 +6,7 @@ const bodyParser = require('body-parser');
 const Auth = require('./middleware/auth');
 const models = require('./models');
 const Users = require('./models/user');
-const cookieParser = require('./middleware/cookieParser');
+// const cookieParser = require('./middleware/cookieParser');
 
 const app = express();
 
@@ -24,7 +24,7 @@ app.use(partials());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
-app.use(cookieParser());
+// app.use(cookieParser());
 
 app.get('/signup', (req, res) => {
   res.render('signup');
