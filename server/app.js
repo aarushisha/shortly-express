@@ -16,32 +16,44 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Default if the user is logged in.
-// If the user is already logged in, just rendre their homepage.
 app.get('/signup', (req, res) => {
-  // Render the signup page.
   res.render('signup');
 });
 
-app.get('/login', (req, res) => {
-  // Render the signup page.
-  res.render('login');
-});
-
 app.post('/signup', (req, res) => {
-  // Check req.body.username is already in users table as username
-  //if not...
-  //sql already has error for duplicate so if it is the same username, refresh page? (ER_DUP_ENTRY)
-  console.log(req.body);
-  Users.create(req.body).then(function(results) {
+  Users.create(req.body).then(function (results) {
     res.redirect('/');
-  }).catch(function(err) {
-    console.log(err);
+  }).catch(function (err) {
     if (err.code = 'ER_DUP_ENTRY') {
       res.redirect('/signup');
     }
   });
-  //else you redirect to /signup (res.redirect('/signup'))
+});
+
+//app.post('/login')
+//use Users.get with the username entered to see if username is in database
+//if it isn't, redirect to the /login
+//if it is, check that the entered password matches using User.compare
+//if it matches, log them in
+//else, redirect to the /login
+app.get('/login', (req, res) => {
+  res.render('login');
+});
+
+app.post('/login', (req, res) => {
+  Users.get({username: req.body.username}).then(function(results) {
+    if (results === undefined) {
+      res.redirect('/login');
+    } else {
+      if (Users.compare(req.body.password, results.password, results.salt)) {
+        res.redirect('/');
+      } else {
+        res.redirect('/login');
+      }
+    }
+  }).catch(function(err) {
+    res.sendStatus(404);
+  })
 });
 
 app.get('/', 

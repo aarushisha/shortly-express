@@ -142,7 +142,6 @@ describe('', function() {
           var user = rows[0];
           expect(user).to.exist;
           expect(user.username).to.equal('Samantha');
-          console.log('We\'re here!!!!!!!');
           done();
         });
       });
