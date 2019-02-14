@@ -6,15 +6,25 @@ const bodyParser = require('body-parser');
 const Auth = require('./middleware/auth');
 const models = require('./models');
 const Users = require('./models/user');
+const cookieParser = require('./middleware/cookieParser');
 
 const app = express();
 
+// A checkUser  middleware
+// function checkUser(req, res, next) {
+//   // ...
+
+//   next();
+// }
+
 app.set('views', `${__dirname}/views`);
 app.set('view engine', 'ejs');
+// app.use(checkUser());
 app.use(partials());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
+app.use(cookieParser());
 
 app.get('/signup', (req, res) => {
   res.render('signup');
