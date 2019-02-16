@@ -13,13 +13,14 @@ module.exports.createSession = (req, res, next) => {
     Sessions.create().then(function (results) {
       Sessions.get({id: results.insertId}).then(function(results) {
         req.session.hash = results.hash;
-        res.cookies.shortlyid = {value: results.hash};   
+        res.cookies.shortlyid = {value: results.hash};
+        res.cookie('shortlyid', results.hash);
         next();
       });
     });
   } else {
     Sessions.get({hash: req.cookies.shortlyid}).then(function(results) {
-
+      
       if (results) {
         req.session.hash = req.cookies.shortlyid;
 
@@ -27,12 +28,14 @@ module.exports.createSession = (req, res, next) => {
           req.session.user = {username: results.user.username};
           req.session.userId = results.user.id;
         }
+
         next();
       } else {
         Sessions.create().then(function (results) {
           Sessions.get({id: results.insertId}).then(function(results) {
             req.session.hash = results.hash;
-            res.cookies.shortlyid = {value: results.hash};   
+            res.cookies.shortlyid = {value: results.hash};
+            res.cookie('shortlyid', results.hash);
             next();
           });
         });   

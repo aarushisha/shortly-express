@@ -1,6 +1,6 @@
 const parseCookies = (req, res, next) => {
-  if (JSON.stringify(req.headers) === JSON.stringify({})) {
-    res.send({});
+  if (req.headers.cookie === undefined) {
+    req.cookies = {};
   } else {
     var resObj = {};
     var splitCookie = req.headers.cookie.split('; '); 

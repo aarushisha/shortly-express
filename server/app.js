@@ -6,8 +6,9 @@ const bodyParser = require('body-parser');
 const Auth = require('./middleware/auth');
 const models = require('./models');
 const Users = require('./models/user');
-const cookieParser = require('./middleware/cookieParser');
-const createSession = require('./middleware/auth');
+const Sessions  = require('./models/session');
+const CookieParser = require('./middleware/cookieParser');
+
 
 const app = express();
 
@@ -16,9 +17,10 @@ app.set('view engine', 'ejs');
 app.use(partials());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(CookieParser);
+app.use(Auth.createSession);
 app.use(express.static(path.join(__dirname, '../public')));
-app.use(cookieParser());
-app.use(createSession());
+
 
 app.get('/signup', (req, res) => {
   res.render('signup');
@@ -27,7 +29,13 @@ app.get('/signup', (req, res) => {
 app.post('/signup', (req, res) => {
   Users.create(req.body).then(function (results) {
     res.redirect('/');
-  }).catch(function (err) {
+    return results;
+  }).then(function(results) {
+    console.log('results----------------', results);
+    console.log('req.session.hash in app----------', req.session.hash);
+    Sessions.update({hash: req.session.hash}, {userId: results.insertId});
+  })
+  .catch(function (err) {
     if (err.code = 'ER_DUP_ENTRY') {
       res.redirect('/signup');
     }
@@ -57,10 +65,16 @@ app.post('/login', (req, res) => {
 
 app.get('/',
   (req, res) => {
-    // ...
-
-    
     res.render('index');
+  });
+
+  app.get('/logout',
+  (req, res) => {
+    Sessions.delete({hash: req.session.hash}).then(function() {
+      res.clearCookie('shortlyid');
+    }).then(function() {
+      res.redirect('/login');
+    });
   });
 
 app.get('/create',
