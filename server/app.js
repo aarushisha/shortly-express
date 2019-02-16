@@ -7,24 +7,18 @@ const Auth = require('./middleware/auth');
 const models = require('./models');
 const Users = require('./models/user');
 const cookieParser = require('./middleware/cookieParser');
+const createSession = require('./middleware/auth');
 
 const app = express();
 
-// A checkUser  middleware
-// function checkUser(req, res, next) {
-//   // ...
-
-//   next();
-// }
-
 app.set('views', `${__dirname}/views`);
 app.set('view engine', 'ejs');
-// app.use(checkUser());
 app.use(partials());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
-// app.use(cookieParser());
+app.use(cookieParser());
+app.use(createSession());
 
 app.get('/signup', (req, res) => {
   res.render('signup');
@@ -40,18 +34,13 @@ app.post('/signup', (req, res) => {
   });
 });
 
-//app.post('/login')
-//use Users.get with the username entered to see if username is in database
-//if it isn't, redirect to the /login
-//if it is, check that the entered password matches using User.compare
-//if it matches, log them in
-//else, redirect to the /login
+
 app.get('/login', (req, res) => {
   res.render('login');
 });
 
 app.post('/login', (req, res) => {
-  Users.get({username: req.body.username}).then(function(results) {
+  Users.get({ username: req.body.username }).then(function (results) {
     if (results === undefined) {
       res.redirect('/login');
     } else {
@@ -61,67 +50,70 @@ app.post('/login', (req, res) => {
         res.redirect('/login');
       }
     }
-  }).catch(function(err) {
+  }).catch(function (err) {
     res.sendStatus(404);
   })
 });
 
-app.get('/', 
-(req, res) => {
-  res.render('index');
-});
+app.get('/',
+  (req, res) => {
+    // ...
 
-app.get('/create', 
-(req, res) => {
-  res.render('index');
-});
+    
+    res.render('index');
+  });
 
-app.get('/links', 
-(req, res, next) => {
-  models.Links.getAll()
-    .then(links => {
-      res.status(200).send(links);
-    })
-    .error(error => {
-      res.status(500).send(error);
-    });
-});
+app.get('/create',
+  (req, res) => {
+    res.render('index');
+  });
 
-app.post('/links', 
-(req, res, next) => {
-  var url = req.body.url;
-  if (!models.Links.isValidUrl(url)) {
-    // send back a 404 if link is not valid
-    return res.sendStatus(404);
-  }
-
-  return models.Links.get({ url })
-    .then(link => {
-      if (link) {
-        throw link;
-      }
-      return models.Links.getUrlTitle(url);
-    })
-    .then(title => {
-      return models.Links.create({
-        url: url,
-        title: title,
-        baseUrl: req.headers.origin
+app.get('/links',
+  (req, res, next) => {
+    models.Links.getAll()
+      .then(links => {
+        res.status(200).send(links);
+      })
+      .error(error => {
+        res.status(500).send(error);
       });
-    })
-    .then(results => {
-      return models.Links.get({ id: results.insertId });
-    })
-    .then(link => {
-      throw link;
-    })
-    .error(error => {
-      res.status(500).send(error);
-    })
-    .catch(link => {
-      res.status(200).send(link);
-    });
-});
+  });
+
+app.post('/links',
+  (req, res, next) => {
+    var url = req.body.url;
+    if (!models.Links.isValidUrl(url)) {
+      // send back a 404 if link is not valid
+      return res.sendStatus(404);
+    }
+
+    return models.Links.get({ url })
+      .then(link => {
+        if (link) {
+          throw link;
+        }
+        return models.Links.getUrlTitle(url);
+      })
+      .then(title => {
+        return models.Links.create({
+          url: url,
+          title: title,
+          baseUrl: req.headers.origin
+        });
+      })
+      .then(results => {
+        return models.Links.get({ id: results.insertId });
+      })
+      .then(link => {
+        throw link;
+      })
+      .error(error => {
+        res.status(500).send(error);
+      })
+      .catch(link => {
+        res.status(200).send(link);
+      });
+  });
 
 /************************************************************/
 // Write your authentication routes here
