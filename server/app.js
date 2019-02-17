@@ -9,7 +9,6 @@ const Users = require('./models/user');
 const Sessions  = require('./models/session');
 const CookieParser = require('./middleware/cookieParser');
 
-
 const app = express();
 
 app.set('views', `${__dirname}/views`);
@@ -31,8 +30,6 @@ app.post('/signup', (req, res) => {
     res.redirect('/');
     return results;
   }).then(function(results) {
-    console.log('results----------------', results);
-    console.log('req.session.hash in app----------', req.session.hash);
     Sessions.update({hash: req.session.hash}, {userId: results.insertId});
   })
   .catch(function (err) {
@@ -60,12 +57,18 @@ app.post('/login', (req, res) => {
     }
   }).catch(function (err) {
     res.sendStatus(404);
-  })
+  });
+  // send a cookie to the client that state that the user is logged in.
+
 });
 
 app.get('/',
   (req, res) => {
-    res.render('index');
+    if (req.session.user === undefined) {
+      res.redirect('/login');
+    } else {
+      res.render('index');
+    }
   });
 
   app.get('/logout',
@@ -79,18 +82,26 @@ app.get('/',
 
 app.get('/create',
   (req, res) => {
-    res.render('index');
+    if (req.session.user === undefined) {
+      res.redirect('/login');
+    } else {
+      res.render('index');
+    }
   });
 
 app.get('/links',
   (req, res, next) => {
-    models.Links.getAll()
-      .then(links => {
-        res.status(200).send(links);
-      })
-      .error(error => {
-        res.status(500).send(error);
-      });
+    if (req.session.user === undefined) {
+      res.redirect('/login');
+    }  else {
+      models.Links.getAll()
+        .then(links => {
+          res.status(200).send(links);
+        })
+        .error(error => {
+          res.status(500).send(error);
+        });
+    }
   });
 
 app.post('/links',
